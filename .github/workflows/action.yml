@@ -1,0 +1,51 @@
+name: Deploy Lambda Service
+
+on:
+  workflow_dispatch:   
+  push:                
+    branches:
+      - main 
+
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-west-2
+      TF_WORKING_DIR: ./devops-engineering-take-home/iac
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies & run tests
+        run: |
+          cd ./devops-engineering-take-home/src
+          python -m pip install -r requirements.txt
+          pytest -q
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -auto-approve
+
+      - name: Output API URL
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform output api_url
