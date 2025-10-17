@@ -9,6 +9,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    environment: Secreats
 
     env:
       TF_WORKING_DIR: ./devops-engineering-take-home/iac   # adjust if your Terraform code is in another folder
